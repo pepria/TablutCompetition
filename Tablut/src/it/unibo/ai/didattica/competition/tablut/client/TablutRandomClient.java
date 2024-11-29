@@ -105,200 +105,205 @@ public class TablutRandomClient extends TablutClient {
 			System.exit(4);
 		}
 
-		List<int[]> pawns = new ArrayList<int[]>();
-		List<int[]> empty = new ArrayList<int[]>();
+        extracted(rules);
 
-		System.out.println("You are player " + this.getPlayer().toString() + "!");
+    }
 
-		while (true) {
-			try {
-				this.read();
-			} catch (ClassNotFoundException | IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				System.exit(1);
-			}
-			System.out.println("Current state:");
-			state = this.getCurrentState();
-			System.out.println(state.toString());
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
+    private void extracted(Game rules) {
+        State state;
+        List<int[]> pawns = new ArrayList<int[]>();
+        List<int[]> empty = new ArrayList<int[]>();
 
-			if (this.getPlayer().equals(Turn.WHITE)) {
-				// Mio turno
-				if (this.getCurrentState().getTurn().equals(StateTablut.Turn.WHITE)) {
-					int[] buf;
-					for (int i = 0; i < state.getBoard().length; i++) {
-						for (int j = 0; j < state.getBoard().length; j++) {
-							if (state.getPawn(i, j).equalsPawn(State.Pawn.WHITE.toString())
-									|| state.getPawn(i, j).equalsPawn(State.Pawn.KING.toString())) {
-								buf = new int[2];
-								buf[0] = i;
-								buf[1] = j;
-								pawns.add(buf);
-							} else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
-								buf = new int[2];
-								buf[0] = i;
-								buf[1] = j;
-								empty.add(buf);
-							}
-						}
-					}
+        System.out.println("You are player " + this.getPlayer().toString() + "!");
 
-					int[] selected = null;
+        while (true) {
+            try {
+                this.read();
+            } catch (ClassNotFoundException | IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+                System.exit(1);
+            }
+            System.out.println("Current state:");
+            state = this.getCurrentState();
+            System.out.println(state.toString());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
 
-					boolean found = false;
-					Action a = null;
-					try {
-						a = new Action("z0", "z0", State.Turn.WHITE);
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					while (!found) {
-						if (pawns.size() > 1) {
-							selected = pawns.get(new Random().nextInt(pawns.size() - 1));
-						} else {
-							selected = pawns.get(0);
-						}
+            if (this.getPlayer().equals(Turn.WHITE)) {
+                // Mio turno
+                if (this.getCurrentState().getTurn().equals(Turn.WHITE)) {
+                    int[] buf;
+                    for (int i = 0; i < state.getBoard().length; i++) {
+                        for (int j = 0; j < state.getBoard().length; j++) {
+                            if (state.getPawn(i, j).equalsPawn(State.Pawn.WHITE.toString())
+                                    || state.getPawn(i, j).equalsPawn(State.Pawn.KING.toString())) {
+                                buf = new int[2];
+                                buf[0] = i;
+                                buf[1] = j;
+                                pawns.add(buf);
+                            } else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
+                                buf = new int[2];
+                                buf[0] = i;
+                                buf[1] = j;
+                                empty.add(buf);
+                            }
+                        }
+                    }
 
-						String from = this.getCurrentState().getBox(selected[0], selected[1]);
+                    int[] selected = null;
 
-						selected = empty.get(new Random().nextInt(empty.size() - 1));
-						String to = this.getCurrentState().getBox(selected[0], selected[1]);
+                    boolean found = false;
+                    Action a = null;
+                    try {
+                        a = new Action("z0", "z0", Turn.WHITE);
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                    while (!found) {
+                        if (pawns.size() > 1) {
+                            selected = pawns.get(new Random().nextInt(pawns.size() - 1));
+                        } else {
+                            selected = pawns.get(0);
+                        }
 
-						try {
-							a = new Action(from, to, State.Turn.WHITE);
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+                        String from = this.getCurrentState().getBox(selected[0], selected[1]);
 
-						try {
-							rules.checkMove(state, a);
-							found = true;
-						} catch (Exception e) {
+                        selected = empty.get(new Random().nextInt(empty.size() - 1));
+                        String to = this.getCurrentState().getBox(selected[0], selected[1]);
 
-						}
+                        try {
+                            a = new Action(from, to, Turn.WHITE);
+                        } catch (IOException e1) {
+                            // TODO Auto-generated catch block
+                            e1.printStackTrace();
+                        }
 
-					}
+                        try {
+                            rules.checkMove(state, a);
+                            found = true;
+                        } catch (Exception e) {
 
-					System.out.println("Mossa scelta: " + a.toString());
-					try {
-						this.write(a);
-					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					pawns.clear();
-					empty.clear();
+                        }
 
-				}
-				// Turno dell'avversario
-				else if (state.getTurn().equals(StateTablut.Turn.BLACK)) {
-					System.out.println("Waiting for your opponent move... ");
-				}
-				// ho vinto
-				else if (state.getTurn().equals(StateTablut.Turn.WHITEWIN)) {
-					System.out.println("YOU WIN!");
-					System.exit(0);
-				}
-				// ho perso
-				else if (state.getTurn().equals(StateTablut.Turn.BLACKWIN)) {
-					System.out.println("YOU LOSE!");
-					System.exit(0);
-				}
-				// pareggio
-				else if (state.getTurn().equals(StateTablut.Turn.DRAW)) {
-					System.out.println("DRAW!");
-					System.exit(0);
-				}
+                    }
 
-			} else {
+                    System.out.println("Mossa scelta: " + a.toString());
+                    try {
+                        this.write(a);
+                    } catch (ClassNotFoundException | IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    pawns.clear();
+                    empty.clear();
 
-				// Mio turno
-				if (this.getCurrentState().getTurn().equals(StateTablut.Turn.BLACK)) {
-					int[] buf;
-					for (int i = 0; i < state.getBoard().length; i++) {
-						for (int j = 0; j < state.getBoard().length; j++) {
-							if (state.getPawn(i, j).equalsPawn(State.Pawn.BLACK.toString())) {
-								buf = new int[2];
-								buf[0] = i;
-								buf[1] = j;
-								pawns.add(buf);
-							} else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
-								buf = new int[2];
-								buf[0] = i;
-								buf[1] = j;
-								empty.add(buf);
-							}
-						}
-					}
+                }
+                // Turno dell'avversario
+                else if (state.getTurn().equals(Turn.BLACK)) {
+                    System.out.println("Waiting for your opponent move... ");
+                }
+                // ho vinto
+                else if (state.getTurn().equals(Turn.WHITEWIN)) {
+                    System.out.println("YOU WIN!");
+                    System.exit(0);
+                }
+                // ho perso
+                else if (state.getTurn().equals(Turn.BLACKWIN)) {
+                    System.out.println("YOU LOSE!");
+                    System.exit(0);
+                }
+                // pareggio
+                else if (state.getTurn().equals(Turn.DRAW)) {
+                    System.out.println("DRAW!");
+                    System.exit(0);
+                }
 
-					int[] selected = null;
+            } else {
 
-					boolean found = false;
-					Action a = null;
-					try {
-						a = new Action("z0", "z0", State.Turn.BLACK);
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					;
-					while (!found) {
-						selected = pawns.get(new Random().nextInt(pawns.size() - 1));
-						String from = this.getCurrentState().getBox(selected[0], selected[1]);
+                // Mio turno
+                if (this.getCurrentState().getTurn().equals(Turn.BLACK)) {
+                    int[] buf;
+                    for (int i = 0; i < state.getBoard().length; i++) {
+                        for (int j = 0; j < state.getBoard().length; j++) {
+                            if (state.getPawn(i, j).equalsPawn(State.Pawn.BLACK.toString())) {
+                                buf = new int[2];
+                                buf[0] = i;
+                                buf[1] = j;
+                                pawns.add(buf);
+                            } else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
+                                buf = new int[2];
+                                buf[0] = i;
+                                buf[1] = j;
+                                empty.add(buf);
+                            }
+                        }
+                    }
 
-						selected = empty.get(new Random().nextInt(empty.size() - 1));
-						String to = this.getCurrentState().getBox(selected[0], selected[1]);
+                    int[] selected = null;
 
-						try {
-							a = new Action(from, to, State.Turn.BLACK);
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+                    boolean found = false;
+                    Action a = null;
+                    try {
+                        a = new Action("z0", "z0", Turn.BLACK);
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                    ;
+                    while (!found) {
+                        selected = pawns.get(new Random().nextInt(pawns.size() - 1));
+                        String from = this.getCurrentState().getBox(selected[0], selected[1]);
 
-						System.out.println("try: " + a.toString());
-						try {
-							rules.checkMove(state, a);
-							found = true;
-						} catch (Exception e) {
+                        selected = empty.get(new Random().nextInt(empty.size() - 1));
+                        String to = this.getCurrentState().getBox(selected[0], selected[1]);
 
-						}
+                        try {
+                            a = new Action(from, to, Turn.BLACK);
+                        } catch (IOException e1) {
+                            // TODO Auto-generated catch block
+                            e1.printStackTrace();
+                        }
 
-					}
+                        System.out.println("try: " + a.toString());
+                        try {
+                            rules.checkMove(state, a);
+                            found = true;
+                        } catch (Exception e) {
 
-					System.out.println("Mossa scelta: " + a.toString());
-					try {
-						this.write(a);
-					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					pawns.clear();
-					empty.clear();
+                        }
 
-				}
+                    }
 
-				else if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
-					System.out.println("Waiting for your opponent move... ");
-				} else if (state.getTurn().equals(StateTablut.Turn.WHITEWIN)) {
-					System.out.println("YOU LOSE!");
-					System.exit(0);
-				} else if (state.getTurn().equals(StateTablut.Turn.BLACKWIN)) {
-					System.out.println("YOU WIN!");
-					System.exit(0);
-				} else if (state.getTurn().equals(StateTablut.Turn.DRAW)) {
-					System.out.println("DRAW!");
-					System.exit(0);
-				}
+                    System.out.println("Mossa scelta: " + a.toString());
+                    try {
+                        this.write(a);
+                    } catch (ClassNotFoundException | IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    pawns.clear();
+                    empty.clear();
 
-			}
-		}
+                }
 
-	}
+                else if (state.getTurn().equals(Turn.WHITE)) {
+                    System.out.println("Waiting for your opponent move... ");
+                } else if (state.getTurn().equals(Turn.WHITEWIN)) {
+                    System.out.println("YOU LOSE!");
+                    System.exit(0);
+                } else if (state.getTurn().equals(Turn.BLACKWIN)) {
+                    System.out.println("YOU WIN!");
+                    System.exit(0);
+                } else if (state.getTurn().equals(Turn.DRAW)) {
+                    System.out.println("DRAW!");
+                    System.exit(0);
+                }
+
+            }
+        }
+    }
 }
